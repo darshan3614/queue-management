@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        form { margin-bottom: 20px; }
+        input { margin: 5px; padding: 8px; }
+        button { padding: 8px 15px; cursor: pointer; }
+        .queue-list { margin-top: 20px; }
+        .admin-btn { position: fixed; top: 10px; right: 10px; padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer; }
+        #adminControls { display: none; position: fixed; top: 50px; right: 10px; background: white; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h2>Queue Management System</h2>
+    <form id="queueForm">
+        <input type="text" id="name" placeholder="Enter Name" required>
+        <input type="text" id="usn" placeholder="Enter USN" required>
+        <button type="submit">Join Queue</button>
+    </form>
+    
+    <h3>Current Status</h3>
+    <p id="currentStatus">Loading...</p>
+    <p id="lastUpdated">Last refreshed: --</p>
+    
+    <h3>Queue List</h3>
+    <ul id="queueList"></ul>
+    
+    <button class="admin-btn" onclick="toggleAdminPanel()">Admin</button>
+    <div id="adminControls">
+        <h3>Admin Controls</h3>
+        <button id="nextButton">Next</button>
+    </div>
+
+    <script>
+        const apiUrl = "tedxnhce-nryt9inda-darshan3614s-projects.vercel.app"; // Update if hosted remotely
+        const adminPassword = "admin123"; // Simple authentication for admin controls
+        let adminVerified = false;
+
+        document.getElementById("queueForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("name").value.trim();
+            const usn = document.getElementById("usn").value.trim();
+            if (!name || !usn) {
+                alert("Please enter valid Name and USN!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}/add/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ name, usn }),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    document.getElementById("queueForm").reset(); // Clear input fields
+                } else {
+                    alert("Error: " + result.message);
+                }
+                loadQueue();
+            } catch (error) {
+                alert("Failed to add to queue. Check your connection.");
+            }
+        });
+
+        async function loadQueue() {
+            try {
+                const response = await fetch(`${apiUrl}/queue/`);
+                const data = await response.json();
+                if (data.queue) {
+                    document.getElementById("queueList").innerHTML = data.queue
+                        .map(q => `<li>${q.serial}: ${q.name} (${q.usn})</li>`).join("");
+                } else {
+                    document.getElementById("queueList").innerHTML = "<li>No queue data available</li>";
+                }
+
+                const currentResponse = await fetch(`${apiUrl}/current/`);
+                const currentData = await currentResponse.json();
+                document.getElementById("currentStatus").innerText = currentData.current 
+                    ? `${currentData.current.serial}: ${currentData.current.name}` 
+                    : "Queue is empty";
+
+                document.getElementById("lastUpdated").innerText = "Last refreshed: " + new Date().toLocaleTimeString();
+            } catch (error) {
+                document.getElementById("currentStatus").innerText = "Failed to fetch data";
+                document.getElementById("queueList").innerHTML = "<li>Error loading queue</li>";
+            }
+        }
+
+        function toggleAdminPanel() {
+            if (!adminVerified) {
+                const password = prompt("Enter admin password:");
+                if (password === adminPassword) {
+                    adminVerified = true;
+                    document.getElementById("adminControls").style.display = "block";
+                } else {
+                    alert("Incorrect password");
+                }
+            } else {
+                const adminPanel = document.getElementById("adminControls");
+                adminPanel.style.display = adminPanel.style.display === "none" ? "block" : "none";
+            }
+        }
+
+        document.getElementById("nextButton").addEventListener("click", async () => {
+            try {
+                const response = await fetch(`${apiUrl}/next/`, { method: "POST" });
+                const result = await response.json();
+                alert(result.message);
+                loadQueue();
+            } catch (error) {
+                alert("Failed to remove the next person.");
+            }
+        });
+
+        setInterval(loadQueue, 5000); // Auto-refresh every 5 seconds
+        loadQueue();
+    </script>
+</body>
+</html>

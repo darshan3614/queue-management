@@ -12,10 +12,27 @@
         .queue-list { margin-top: 20px; }
         .admin-btn { position: fixed; top: 10px; right: 10px; padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer; }
         #adminControls { display: none; position: fixed; top: 50px; right: 10px; background: white; padding: 10px; border: 1px solid #ccc; }
+        @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+        }
+
+        .blink-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: red;
+            border: none;
+            cursor: pointer;
+            animation: blink 2s infinite;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
-    <h2>Queue Management System</h2>
+    <h2>TedxNhce</h2>
     <form id="queueForm">
         <input type="text" id="name" placeholder="Enter Name" required>
         <input type="text" id="usn" placeholder="Enter USN" required>
@@ -30,6 +47,7 @@
     <ul id="queueList"></ul>
     
     <button class="admin-btn" onclick="toggleAdminPanel()">Admin</button>
+    <button class="blink-button" onclick="window.location.href='http://192.168.6.234:3000/'">Go to Leaderboard</button>
     <div id="adminControls">
         <h3>Admin Controls</h3>
         <button id="nextButton">Next</button>
@@ -37,7 +55,7 @@
 
     <script>
         const apiUrl = "https://queue-api-backend.onrender.com"; // Update if hosted remotely
-        const adminPassword = "admin123"; // Simple authentication for admin controls
+        const adminPassword = "darshan3614"; // Simple authentication for admin controls
         let adminVerified = false;
 
         document.getElementById("queueForm").addEventListener("submit", async (e) => {
